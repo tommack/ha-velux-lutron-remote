@@ -1,0 +1,99 @@
+blueprint:
+  name: Control Velux window and shade with 5-button Lutron Pico
+  description: >
+    Control a Velux window and shade using a 5-button Lutron Caseta Pico remote.
+    - Top button: Open window
+    - Raise button: Open shade
+    - Middle button: Set window to 50% and open shade
+    - Lower button: Close shade
+    - Bottom button: Close window
+  domain: automation
+  input:
+    lutron_device:
+      name: Lutron Pico Remote
+      description: Select the Lutron Pico remote device
+      selector:
+        device:
+          integration: lutron_caseta
+          model: PJ2-3BRL-GXX-X01 (Pico3ButtonRaiseLower)
+    window_entity:
+      name: Velux Window
+      description: The window cover entity to control
+      selector:
+        entity:
+          domain: cover
+          device_class: window
+    shade_entity:
+      name: Velux Shade
+      description: The shade cover entity to control
+      selector:
+        entity:
+          domain: cover
+          device_class: shade
+    automation_mode:
+      name: Automation Mode
+      description: Mode for running the automation
+      default: queued
+      selector:
+        select:
+          options:
+            - single
+            - queued
+            - parallel
+          mode: dropdown
+
+mode: !input automation_mode
+
+trigger:
+  - platform: event
+    event_type: lutron_caseta_button_event
+    event_data:
+      device_id: !input lutron_device
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.event.data.button_type == 'press' }}"
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ trigger.event.data.button_number == 1 }}"
+                sequence:
+                  - service: cover.open_cover
+                    target:
+                      entity_id: !input window_entity
+              - conditions:
+                  - condition: template
+                    value_template: "{{ trigger.event.data.button_number == 2 }}"
+                sequence:
+                  - service: cover.set_cover_position
+                    target:
+                      entity_id: !input window_entity
+                    data:
+                      position: 50
+                  - service: cover.open_cover
+                    target:
+                      entity_id: !input shade_entity
+              - conditions:
+                  - condition: template
+                    value_template: "{{ trigger.event.data.button_number == 3 }}"
+                sequence:
+                  - service: cover.close_cover
+                    target:
+                      entity_id: !input window_entity
+              - conditions:
+                  - condition: template
+                    value_template: "{{ trigger.event.data.button_number == 4 }}"
+                sequence:
+                  - service: cover.open_cover
+                    target:
+                      entity_id: !input shade_entity
+              - conditions:
+                  - condition: template
+                    value_template: "{{ trigger.event.data.button_number == 5 }}"
+                sequence:
+                  - service: cover.close_cover
+                    target:
+                      entity_id: !input shade_entity
