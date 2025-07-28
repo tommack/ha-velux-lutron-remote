@@ -1,0 +1,111 @@
+blueprint:
+  name: Input Select Window and Shade Controller
+  description: >
+    Controls a window and its associated blind/shade based on an input_select entity state changes.
+    Perfect companion to the Lutron Caseta Input Select Controller blueprint.
+    
+    **Required input_select states:**
+    - `open-transparent`: Window open, shade open
+    - `half-transparent`: Window half open, shade open  
+    - `closed-transparent`: Window closed, shade open
+    - `closed-opaque`: Window closed, shade closed
+    
+    Create your input_select with these exact state names for this blueprint to work.
+  domain: automation
+  input:
+    target_input_select:
+      name: Input Select Entity
+      description: >
+        The input_select entity to monitor. Must have states: open-transparent, 
+        half-transparent, closed-transparent, closed-opaque
+      selector:
+        entity:
+          filter:
+            - domain: input_select
+    window_cover:
+      name: Window Cover
+      description: The window cover to control (main window shade/blind)
+      selector:
+        entity:
+          filter:
+            - domain: cover
+    shade_cover:
+      name: Shade Cover  
+      description: The privacy shade/blind cover to control
+      selector:
+        entity:
+          filter:
+            - domain: cover
+
+
+alias: !input target_input_select
+description: "Created from Input Select Window and Shade Controller Blueprint"
+triggers:
+  - trigger: state
+    entity_id: !input target_input_select
+    for:
+      seconds: 1
+conditions: []
+actions:
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: !input target_input_select
+            state: "open-transparent"
+        sequence:
+          - action: cover.set_cover_position
+            target:
+              entity_id: !input window_cover
+            data:
+              position: 100
+          - action: cover.set_cover_position
+            target:
+              entity_id: !input shade_cover
+            data:
+              position: 100
+      - conditions:
+          - condition: state
+            entity_id: !input target_input_select
+            state: "half-transparent"
+        sequence:
+          - action: cover.set_cover_position
+            target:
+              entity_id: !input window_cover
+            data:
+              position: 50
+          - action: cover.set_cover_position
+            target:
+              entity_id: !input shade_cover
+            data:
+              position: 100
+      - conditions:
+          - condition: state
+            entity_id: !input target_input_select
+            state: "closed-transparent"
+        sequence:
+          - action: cover.set_cover_position
+            target:
+              entity_id: !input window_cover
+            data:
+              position: 0
+          - action: cover.set_cover_position
+            target:
+              entity_id: !input shade_cover
+            data:
+              position: 100
+      - conditions:
+          - condition: state
+            entity_id: !input target_input_select
+            state: "closed-opaque"
+        sequence:
+          - action: cover.set_cover_position
+            target:
+              entity_id: !input window_cover
+            data:
+              position: 0
+          - action: cover.set_cover_position
+            target:
+              entity_id: !input shade_cover
+            data:
+              position: 0
+mode: restart

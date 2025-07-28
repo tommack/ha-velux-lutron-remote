@@ -1,0 +1,68 @@
+blueprint:
+  name: Lutron Caseta Input Select Controller
+  description: >
+    Control an input_select entity using a Lutron Caseta device.
+    The "on" button cycles to the previous option, and the "off" button 
+    cycles to the next option. 
+  domain: automation
+  input:
+    lutron_device:
+      name: Lutron Caseta Device
+      description: The Lutron Caseta device to use as the controller
+      selector:
+        device:
+          filter:
+            - integration: lutron_caseta
+    target_input_select:
+      name: Input Select Entity
+      description: The input_select entity to control
+      selector:
+        entity:
+          filter:
+            - domain: input_select
+
+
+
+
+alias: !input lutron_device
+description: "Created from Lutron Caseta Input Select Controller Blueprint"
+triggers:
+  - device_id: !input lutron_device
+    domain: lutron_caseta
+    type: press
+    subtype: "on"
+    trigger: device
+    id: on_pressed
+  - device_id: !input lutron_device
+    domain: lutron_caseta
+    type: press
+    subtype: "off"
+    trigger: device
+    id: off_pressed
+conditions: []
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id:
+              - on_pressed
+        sequence:
+          - action: input_select.select_previous
+            metadata: {}
+            data:
+              cycle: false
+            target:
+              entity_id: !input target_input_select
+      - conditions:
+          - condition: trigger
+            id:
+              - off_pressed
+        sequence:
+          - action: input_select.select_next
+            metadata: {}
+            data:
+              cycle: false
+            target:
+              entity_id: !input target_input_select
+mode: queued
+max: 10
