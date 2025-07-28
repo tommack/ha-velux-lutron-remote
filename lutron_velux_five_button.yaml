@@ -2,11 +2,11 @@ blueprint:
   name: Control Velux window and shade with 5-button Lutron Pico
   description: >
     Control a Velux window and shade using a 5-button Lutron Caseta Pico remote.
-    - Top button: Open window
+    - Top button (on): Open window
     - Raise button: Open shade
-    - Middle button: Set window to 50% and open shade
+    - Middle button (stop): Set window to 50% and open shade
     - Lower button: Close shade
-    - Bottom button: Close window
+    - Bottom button (off): Close window
   domain: automation
   input:
     lutron_device:
@@ -15,7 +15,6 @@ blueprint:
       selector:
         device:
           integration: lutron_caseta
-          model: PJ2-3BRL-GXX-X01 (Pico3ButtonRaiseLower)
     window_entity:
       name: Velux Window
       description: The window cover entity to control
@@ -31,31 +30,85 @@ blueprint:
           domain: cover
           device_class: shade
 
-mode: queued
+mode: restart
+max: 10
 
 trigger:
-  - platform: event
-    event_type: lutron_caseta_button_event
-    event_data:
-      device_id: !input lutron_device
+  - device_id: !input lutron_device
+    domain: lutron_caseta
+    type: press
+    subtype: "on"
+    trigger: device
+  - device_id: !input lutron_device
+    domain: lutron_caseta
+    type: press
+    subtype: raise
+    trigger: device
+  - device_id: !input lutron_device
+    domain: lutron_caseta
+    type: press
+    subtype: stop
+    trigger: device
+  - device_id: !input lutron_device
+    domain: lutron_caseta
+    type: press
+    subtype: lower
+    trigger: device
+  - device_id: !input lutron_device
+    domain: lutron_caseta
+    type: press
+    subtype: "off"
+    trigger: device
+  - device_id: !input lutron_device
+    domain: lutron_caseta
+    type: release
+    subtype: "on"
+    trigger: device
+  - device_id: !input lutron_device
+    domain: lutron_caseta
+    type: release
+    subtype: raise
+    trigger: device
+  - device_id: !input lutron_device
+    domain: lutron_caseta
+    type: release
+    subtype: stop
+    trigger: device
+  - device_id: !input lutron_device
+    domain: lutron_caseta
+    type: release
+    subtype: lower
+    trigger: device
+  - device_id: !input lutron_device
+    domain: lutron_caseta
+    type: release
+    subtype: "off"
+    trigger: device
 
 action:
   - choose:
       - conditions:
           - condition: template
-            value_template: "{{ trigger.event.data.button_type == 'press' }}"
+            value_template: '{{ trigger.to_state.attributes.action == "press" }}'
         sequence:
           - choose:
               - conditions:
                   - condition: template
-                    value_template: "{{ trigger.event.data.button_number == 1 }}"
+                    value_template: '{{ trigger.to_state.attributes.button_number == 2 }}'
                 sequence:
                   - service: cover.open_cover
                     target:
                       entity_id: !input window_entity
               - conditions:
                   - condition: template
-                    value_template: "{{ trigger.event.data.button_number == 2 }}"
+                    value_template: '{{ trigger.to_state.attributes.button_number == 5 }}'
+                sequence:
+                  - service: cover.open_cover
+                    target:
+                      entity_id: !input shade_entity
+              - conditions:
+                  - condition: template
+                    value_template: '{{ trigger.to_state.attributes.button_number == 3 }}'
                 sequence:
                   - service: cover.set_cover_position
                     target:
@@ -67,22 +120,15 @@ action:
                       entity_id: !input shade_entity
               - conditions:
                   - condition: template
-                    value_template: "{{ trigger.event.data.button_number == 3 }}"
+                    value_template: '{{ trigger.to_state.attributes.button_number == 6 }}'
+                sequence:
+                  - service: cover.close_cover
+                    target:
+                      entity_id: !input shade_entity
+              - conditions:
+                  - condition: template
+                    value_template: '{{ trigger.to_state.attributes.button_number == 4 }}'
                 sequence:
                   - service: cover.close_cover
                     target:
                       entity_id: !input window_entity
-              - conditions:
-                  - condition: template
-                    value_template: "{{ trigger.event.data.button_number == 4 }}"
-                sequence:
-                  - service: cover.open_cover
-                    target:
-                      entity_id: !input shade_entity
-              - conditions:
-                  - condition: template
-                    value_template: "{{ trigger.event.data.button_number == 5 }}"
-                sequence:
-                  - service: cover.close_cover
-                    target:
-                      entity_id: !input shade_entity
