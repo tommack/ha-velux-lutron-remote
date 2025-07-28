@@ -30,19 +30,8 @@ blueprint:
         entity:
           domain: cover
           device_class: shade
-    automation_mode:
-      name: Automation Mode
-      description: Mode for running the automation
-      default: queued
-      selector:
-        select:
-          options:
-            - single
-            - queued
-            - parallel
-          mode: dropdown
 
-mode: !input automation_mode
+mode: queued
 
 trigger:
   - platform: event
