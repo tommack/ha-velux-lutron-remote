@@ -59,76 +59,46 @@ trigger:
     type: press
     subtype: "off"
     trigger: device
-  - device_id: !input lutron_device
-    domain: lutron_caseta
-    type: release
-    subtype: "on"
-    trigger: device
-  - device_id: !input lutron_device
-    domain: lutron_caseta
-    type: release
-    subtype: raise
-    trigger: device
-  - device_id: !input lutron_device
-    domain: lutron_caseta
-    type: release
-    subtype: stop
-    trigger: device
-  - device_id: !input lutron_device
-    domain: lutron_caseta
-    type: release
-    subtype: lower
-    trigger: device
-  - device_id: !input lutron_device
-    domain: lutron_caseta
-    type: release
-    subtype: "off"
-    trigger: device
 
 action:
   - choose:
-      - conditions:
-          - condition: template
-            value_template: '{{ trigger.event.data.action == "press" }}'
-        sequence:
-          - choose:
-              - conditions:
-                  - condition: template
-                    value_template: '{{ trigger.event.data.button_number == 2 }}'
-                sequence:
-                  - service: cover.open_cover
-                    target:
-                      entity_id: !input window_entity
-              - conditions:
-                  - condition: template
-                    value_template: '{{ trigger.event.data.button_number == 5 }}'
-                sequence:
-                  - service: cover.open_cover
-                    target:
-                      entity_id: !input shade_entity
-              - conditions:
-                  - condition: template
-                    value_template: '{{ trigger.event.data.button_number == 3 }}'
-                sequence:
-                  - service: cover.set_cover_position
-                    target:
-                      entity_id: !input window_entity
-                    data:
-                      position: 50
-                  - service: cover.open_cover
-                    target:
-                      entity_id: !input shade_entity
-              - conditions:
-                  - condition: template
-                    value_template: '{{ trigger.event.data.button_number == 6 }}'
-                sequence:
-                  - service: cover.close_cover
-                    target:
-                      entity_id: !input shade_entity
-              - conditions:
-                  - condition: template
-                    value_template: '{{ trigger.event.data.button_number == 4 }}'
-                sequence:
-                  - service: cover.close_cover
-                    target:
-                      entity_id: !input window_entity
+    - conditions:
+        - condition: template
+          value_template: '{{ trigger.event.data.button_number == 2 }}'
+      sequence:
+        - service: cover.open_cover
+          target:
+            entity_id: !input window_entity
+    - conditions:
+        - condition: template
+          value_template: '{{ trigger.event.data.button_number == 5 }}'
+      sequence:
+        - service: cover.open_cover
+          target:
+            entity_id: !input shade_entity
+    - conditions:
+        - condition: template
+          value_template: '{{ trigger.event.data.button_number == 3 }}'
+      sequence:
+        - service: cover.set_cover_position
+          target:
+            entity_id: !input window_entity
+          data:
+            position: 50
+        - service: cover.open_cover
+          target:
+            entity_id: !input shade_entity
+    - conditions:
+        - condition: template
+          value_template: '{{ trigger.event.data.button_number == 6 }}'
+      sequence:
+        - service: cover.close_cover
+          target:
+            entity_id: !input shade_entity
+    - conditions:
+        - condition: template
+          value_template: '{{ trigger.event.data.button_number == 4 }}'
+      sequence:
+        - service: cover.close_cover
+          target:
+            entity_id: !input window_entity
