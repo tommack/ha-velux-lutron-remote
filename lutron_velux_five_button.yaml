@@ -89,26 +89,26 @@ action:
   - choose:
       - conditions:
           - condition: template
-            value_template: '{{ trigger.to_state.attributes.action == "press" }}'
+            value_template: '{{ trigger.event.data.action == "press" }}'
         sequence:
           - choose:
               - conditions:
                   - condition: template
-                    value_template: '{{ trigger.to_state.attributes.button_number == 2 }}'
+                    value_template: '{{ trigger.event.data.button_number == 2 }}'
                 sequence:
                   - service: cover.open_cover
                     target:
                       entity_id: !input window_entity
               - conditions:
                   - condition: template
-                    value_template: '{{ trigger.to_state.attributes.button_number == 5 }}'
+                    value_template: '{{ trigger.event.data.button_number == 5 }}'
                 sequence:
                   - service: cover.open_cover
                     target:
                       entity_id: !input shade_entity
               - conditions:
                   - condition: template
-                    value_template: '{{ trigger.to_state.attributes.button_number == 3 }}'
+                    value_template: '{{ trigger.event.data.button_number == 3 }}'
                 sequence:
                   - service: cover.set_cover_position
                     target:
@@ -120,14 +120,14 @@ action:
                       entity_id: !input shade_entity
               - conditions:
                   - condition: template
-                    value_template: '{{ trigger.to_state.attributes.button_number == 6 }}'
+                    value_template: '{{ trigger.event.data.button_number == 6 }}'
                 sequence:
                   - service: cover.close_cover
                     target:
                       entity_id: !input shade_entity
               - conditions:
                   - condition: template
-                    value_template: '{{ trigger.to_state.attributes.button_number == 4 }}'
+                    value_template: '{{ trigger.event.data.button_number == 4 }}'
                 sequence:
                   - service: cover.close_cover
                     target:
