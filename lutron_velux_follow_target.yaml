@@ -1,5 +1,5 @@
 blueprint:
-  name: Input Select Window and Shade Controller
+  name: Update Velux window based on target state
   description: >
     Controls a window and its associated blind/shade based on an input_select entity state changes.
     Perfect companion to the Lutron Caseta Input Select Controller blueprint.

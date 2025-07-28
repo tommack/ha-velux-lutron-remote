@@ -1,5 +1,5 @@
 blueprint:
-  name: Lutron Caseta Input Select Controller
+  name: Update target state for Velux window from Lutron remote
   description: >
     Control an input_select entity using a Lutron Caseta device.
     The "on" button cycles to the previous option, and the "off" button 
