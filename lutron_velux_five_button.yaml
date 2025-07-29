@@ -30,7 +30,7 @@ blueprint:
           domain: cover
           device_class: shade
 
-mode: restart
+mode: queued
 max: 10
 
 trigger:
