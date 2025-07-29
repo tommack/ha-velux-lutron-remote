@@ -36,7 +36,20 @@ blueprint:
         entity:
           filter:
             - domain: cover
+    automation_flag:
+      name: Automation Flag Helper (Optional)
+      description: >
+        Input boolean helper to prevent race conditions when used with
+        "Update target state from Velux window position" blueprint.
+        Leave empty if not using bidirectional sync.
+      selector:
+        entity:
+          filter:
+            - domain: input_boolean
+      default: []
 
+variables:
+  automation_flag: !input automation_flag
 
 alias: !input target_input_select
 description: "Created from Input Select Window and Shade Controller Blueprint"
@@ -47,6 +60,13 @@ triggers:
       seconds: 1
 conditions: []
 actions:
+  - if:
+      - condition: template
+        value_template: "{{ automation_flag is defined and automation_flag != [] }}"
+    then:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: !input automation_flag
   - choose:
       - conditions:
           - condition: state
@@ -108,4 +128,13 @@ actions:
               entity_id: !input shade_cover
             data:
               position: 0
+  - delay:
+      seconds: 5
+  - if:
+      - condition: template
+        value_template: "{{ automation_flag is defined and automation_flag != [] }}"
+    then:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: !input automation_flag
 mode: restart

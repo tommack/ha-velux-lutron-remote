@@ -1,0 +1,119 @@
+blueprint:
+  name: Update target state from Velux window position
+  description: >
+    Updates the target input_select when window or shade positions change manually.
+    Includes race condition protection to prevent loops when used with the 
+    "Update Velux window based on target state" blueprint.
+    
+    **How it works:**
+    - Monitors window and shade position changes
+    - Uses a helper entity to track automation-triggered changes
+    - Only updates target when changes are manual (not from automation)
+    - Determines target state based on actual positions
+    
+    **State mapping:**
+    - `open-transparent`: Window 100% open AND shade 100% open
+    - `closed-opaque`: Window 0% open AND shade 0% open
+    - `closed-transparent`: Window 0% open AND shade >0% open
+    - `half-transparent`: All other combinations
+  domain: automation
+  input:
+    target_input_select:
+      name: Input Select Entity
+      description: >
+        The input_select entity to update. Must have states: open-transparent, 
+        half-transparent, closed-transparent, closed-opaque
+      selector:
+        entity:
+          filter:
+            - domain: input_select
+    window_cover:
+      name: Window Cover
+      description: The window cover to monitor (main window shade/blind)
+      selector:
+        entity:
+          filter:
+            - domain: cover
+    shade_cover:
+      name: Shade Cover  
+      description: The privacy shade/blind cover to monitor
+      selector:
+        entity:
+          filter:
+            - domain: cover
+    automation_flag:
+      name: Automation Flag Helper
+      description: >
+        Input boolean helper to track automation-triggered changes.
+        Create one named like "input_boolean.velux_automation_active"
+      selector:
+        entity:
+          filter:
+            - domain: input_boolean
+
+variables:
+  window_pos: "{{ state_attr(window_cover, 'current_position') | int(0) }}"
+  shade_pos: "{{ state_attr(shade_cover, 'current_position') | int(0) }}"
+  window_cover: !input window_cover
+  shade_cover: !input shade_cover
+
+alias: Update target from window position
+description: "Created from Update target state from Velux window position Blueprint"
+mode: queued
+max: 10
+
+trigger:
+  - platform: state
+    entity_id: !input window_cover
+    attribute: current_position
+    for:
+      seconds: 2
+  - platform: state
+    entity_id: !input shade_cover
+    attribute: current_position
+    for:
+      seconds: 2
+
+condition:
+  - condition: state
+    entity_id: !input automation_flag
+    state: "off"
+  - condition: template
+    value_template: >
+      {{ window_pos is defined and shade_pos is defined }}
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ window_pos == 100 and shade_pos == 100 }}"
+        sequence:
+          - service: input_select.select_option
+            target:
+              entity_id: !input target_input_select
+            data:
+              option: "open-transparent"
+      - conditions:
+          - condition: template
+            value_template: "{{ window_pos == 0 and shade_pos == 0 }}"
+        sequence:
+          - service: input_select.select_option
+            target:
+              entity_id: !input target_input_select
+            data:
+              option: "closed-opaque"
+      - conditions:
+          - condition: template
+            value_template: "{{ window_pos == 0 and shade_pos > 0 }}"
+        sequence:
+          - service: input_select.select_option
+            target:
+              entity_id: !input target_input_select
+            data:
+              option: "closed-transparent"
+    default:
+      - service: input_select.select_option
+        target:
+          entity_id: !input target_input_select
+        data:
+          option: "half-transparent"
